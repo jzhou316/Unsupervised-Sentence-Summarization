@@ -62,7 +62,8 @@ def gensummary_elmo(template_vec,
         stopbyLMeos: whether to stop a sentence solely by the language model predicting '<eos>' as the top possibility. Default: False.
         devid: device id to run the algorithm and LSTM language models. 'int', default: 0. -1 for cpu.
         **kwargs: other arguments input to function <Beam.beamstep>. 
-            E.g. ifadditive: whether to use an additive model on mixing the probability scores. Default: False.
+            E.g. normalized: whether to normalize the dot product when calculating the similarity, which makes it cosine similarity. Default: True.
+                 ifadditive: whether to use an additive model on mixing the probability scores. Default: False.
     
     Output:
         beam: 'Beam' object, recording all the generated sequences.
@@ -79,9 +80,13 @@ def gensummary_elmo(template_vec,
                 sim_score=0, lm_score=0, lm_state=None, elmo_state=None, align_loc=None)
     
     # first step: start with 'beam_width_start' best matched words
-    beam.beamstep(beam_width_start, beam.combscoreK,
-                  template_vec=template_vec, ee=ee, LMModel=LMModel,
-                  word_list=word_list, subvocab=subvocab,
+    beam.beamstep(beam_width_start,
+                  beam.combscoreK,
+                  template_vec=template_vec,
+                  ee=ee,
+                  LMModel=LMModel,
+                  word_list=word_list,
+                  subvocab=subvocab,
                   clustermask=clustermask, 
                   alpha=alpha_start,
                   renorm=renorm,
@@ -94,19 +99,23 @@ def gensummary_elmo(template_vec,
     # run beam search, until all sentences hit <EOS> or max_step reached
     for s in range(max_step):
         print(f'beam step {s+1} ' + '-' * 50 + '\n')
-        beam.beamstep(beam_width, beam.combscoreK, template_vec=template_vec, ee=ee, LMModel=LMModel,
-                  word_list=word_list,
-                  subvocab=subvocab,
-                  clustermask=clustermask,
-                  mono=mono,
-                  alpha=alpha,
-                  renorm=renorm,
-                  temperature=temperature,
-                  stopbyLMeos=stopbyLMeos,
-                  elmo_layer=elmo_layer,
-                  normalized=True,
-                  ifadditive=False,
-                  **kwargs)
+        beam.beamstep(beam_width,
+                      beam.combscoreK,
+                      template_vec=template_vec,
+                      ee=ee,
+                      LMModel=LMModel,
+                      word_list=word_list,
+                      subvocab=subvocab,
+                      clustermask=clustermask,
+                      mono=mono,
+                      alpha=alpha,
+                      renorm=renorm,
+                      temperature=temperature,
+                      stopbyLMeos=stopbyLMeos,
+                      elmo_layer=elmo_layer,
+                      normalized=True,
+                      ifadditive=False,
+                      **kwargs)
         # all beams reach termination
         if beam.endall:
             break
