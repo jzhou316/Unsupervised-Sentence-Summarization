@@ -11,53 +11,58 @@ from pre_closetables import ELMoBotEmbedding, findclosewords_vocab
 
 sys.path.append('../4.0_cluster')
 from elmo_sequential_embedder import ElmoEmbedderForward
-# from reprob import findwordlist, findwordlist_screened
-from reprob import findwordlist_screened2
-from lmsubvocab import clmk_nn
+# from pre_word_list import findwordlist, findwordlist_screened
+from pre_word_list import findwordlist_screened2
+from lm_subvocab import clmk_nn
 from utils import timeSince
-from BeamSearch4_5 import Beam
+from beam_search import Beam
 
 
-def gensummary(template_vec,
-               ee,
-               vocab, LMModel,
-               word_list, subvocab,
-               clustermask=None,
-               mono=True,
-               renorm=True,
-               temperature=1,
-               elmo_layer='avg',
-               max_step = 20,
-               beam_width = 10,
-               beam_width_start = 10,
-               alpha=0.1,
-               alpha_start=0.1,
-               begineos=True,
-               stopbyLMeos=False,
-               devid=0,
-               **kwargs):
+def gensummary_elmo(template_vec,
+                    ee,
+                    vocab,
+                    LMModel,
+                    word_list,
+                    subvocab,
+                    clustermask=None,
+                    mono=True,
+                    renorm=True,
+                    temperature=1,
+                    elmo_layer='avg',
+                    max_step = 20,
+                    beam_width = 10,
+                    beam_width_start = 10,
+                    alpha=0.1,
+                    alpha_start=0.1,
+                    begineos=True,
+                    stopbyLMeos=False,
+                    devid=0,
+                    **kwargs):
     """
-    Unsupervisely generate summary sentences using beam search.
+    Unsupervised sentence summary generation using beam search, by contextual matching and a summary style language model.
+    The contextual matching here is on top of pretrained ELMo embeddings.
     
     Input:
         template_vec: forward only ELMo embeddings of the source sentence. 'torch.Tensor' of size (3, seq_len, 512).
         ee: 'elmo_sequential_embedder.ElmoEmbedderForward' object.
         vocab: 'torchtext.vocab.Vocab' object. Should be the same as is used for the pretrained language model.
-        LMMoS: a pretrained language model on the summary sentences, with the output being a mixture of softmax.
+        LMModel: a pretrained language model on the summary sentences.
         word_list: a list of words in the vocabulary to work with. 'List'.
         subvocab: 'torch.LongTensor' consisting of the indices of the words corresponding to 'word_list'.
         clustermask: a binary mask for each of the sub-vocabulary word. 'torch.ByteTensor' of size (len(sub-vocabulary), len(vocabulary)). Default:None.
         mono: whether to keep monotonicity contraint. Default: True.
-        renorm: renorm: whether to renormalize the probabilities over the sub-vocabulary. Default: True.
+        renorm: whether to renormalize the probabilities over the sub-vocabulary. Default: True.
+        Temperature: temperature applied to the softmax in the language model. Default: 1.
+        elmo_layer: which ELMo layer to use as the word type representation. Choose from ['avg', 'cat', 'bot', 'mid', 'top']. Default: 'avg'.
         max_step: maximum number of beam steps.
         beam_width: beam width.
         beam_width_start: beam width of the first step.
         alpha: the amount of language model part used for scoring. The score is: (1 - \alpha) * similarity_logscore + \alpha * LM_logscore.
         begineos: whether to begin with the special '<eos>' token as is trained in the language model. Note that ELMo has its own special beginning token. Default: True.
         stopbyLMeos: whether to stop a sentence solely by the language model predicting '<eos>' as the top possibility. Default: False.
+        devid: device id to run the algorithm and LSTM language models. 'int', default: 0. -1 for cpu.
         **kwargs: other arguments input to function <Beam.beamstep>. 
             E.g. ifadditive: whether to use an additive model on mixing the probability scores. Default: False.
-        devid: device id to run the algorithm and LSTM models. 'int', default: 0. -1 for cpu.
     
     Output:
         beam: 'Beam' object, recording all the generated sequences.
