@@ -9,13 +9,12 @@ import argparse
 
 from pre_closetables import ELMoBotEmbedding, findclosewords_vocab
 
-sys.path.append('../4.0_cluster')
 from elmo_sequential_embedder import ElmoEmbedderForward
 # from pre_word_list import findwordlist, findwordlist_screened
 from pre_word_list import findwordlist_screened2
 from lm_subvocab import clmk_nn
-from utils import timeSince
 from beam_search import Beam
+from utils import timeSince
 
 
 def gensummary_elmo(template_vec,
@@ -458,14 +457,25 @@ if __name__ == '__main__':
 
         ### beam search
         max_step_temp = min([len(template.split()), max_step])
-        beam = gensummary(template_vec, ee, vocab, LMModel,
-                         word_list, subvocab, clustermask=clustermask if cluster else None,
-                         renorm=renorm, temperature=temp, elmo_layer=elmo_layer,
-                         max_step=max_step_temp, beam_width=beam_width, beam_width_start=beam_width_start,
-                         mono=True, alpha=alpha, alpha_start=alpha_start,
-                         begineos=begineos,
-                         stopbyLMeos=stopbyLMeos,
-                         devid=devid)
+        beam = gensummary_elmo(template_vec,
+                               ee,
+                               vocab,
+                               LMModel,
+                               word_list,
+                               subvocab,
+                               clustermask=clustermask if cluster else None,
+                               renorm=renorm,
+                               temperature=temp,
+                               elmo_layer=elmo_layer,
+                               max_step=max_step_temp,
+                               beam_width=beam_width,
+                               beam_width_start=beam_width_start,
+                               mono=True, 
+                               alpha=alpha,
+                               alpha_start=alpha_start,
+                               begineos=begineos,
+                               stopbyLMeos=stopbyLMeos,
+                               devid=devid)
         
         ### sort and write to file
         if fixedlen:
