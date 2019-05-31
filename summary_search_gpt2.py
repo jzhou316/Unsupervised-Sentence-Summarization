@@ -215,7 +215,7 @@ modelclass_path = '../LM/LSTM'
 model_path = '../LM/LSTM/models/Tle_LSTM_untied.pth'
 closeword = './voctbls/vocabTleCloseWord'
 closeword_lmemb = './voctbls/vocabTleCloseWord_untied_'
-savedir = './results_LMuntied_gpt2/'
+savedir = './results_gpt2/'
 
 
 # vocab_path = '../LM/LSTM/models/vocabTle.pkl'
@@ -441,7 +441,7 @@ if __name__ == '__main__':
             clustermask = clmk_nn(embedmatrix, subvocab)
 
         ### GPT-2 embedding of the template sentence
-        if eosavgemb is False:
+        if not eosavgemb:
             template_vec, _ = ge.embed_sentence(template.split(), add_bos=True, bpe2word=bpe2word)
         else:
             raise ValueError

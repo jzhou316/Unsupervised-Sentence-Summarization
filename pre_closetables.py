@@ -4,10 +4,9 @@ import math
 from tqdm import tqdm
 
 import sys
-sys.path.append('../4.0_cluster')
 
 from elmo_sequential_embedder import ElmoEmbedderForward
-from utils import pickElmoForwardLayer
+from sim_embed_score import pickElmoForwardLayer
 
 
 def ELMoBotEmbedding(itos, device=-1):

@@ -1,2 +1,4 @@
+__pycache__
+
 voctbls/*
-results_LMuntied_gpt2/*
+results_gpt2/*

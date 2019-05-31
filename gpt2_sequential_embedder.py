@@ -75,7 +75,7 @@ class GPT2Embedder(nn.Module):
                 with torch.no_grad():
                     vec, past = self.model(bpe_units, past=past)
             else:
-                bpe_units = torch.tensor([self.enc.encode(' ' + w)], device=self.cuda_device)\
+                bpe_units = torch.tensor([self.enc.encode(' ' + w)], device=self.cuda_device)
                 with torch.no_grad():
                     vec, past = self.model(bpe_units, past=past)
         
@@ -129,7 +129,7 @@ class GPT2Embedder(nn.Module):
         ## padding to for a batch
         padding = 0
         max_seqlen = max(bpe_lens)
-        bpe_list = [b + [padding] * (max_seq_len - l) for b, l in zip(bpe_list, bpe_lens)]
+        bpe_list = [b + [padding] * (max_seqlen - l) for b, l in zip(bpe_list, bpe_lens)]
         bpe_padded = torch.tensor(bpe_list, device=self.cuda_device)        # size (n, max_seqlen)
         if past is not None:
             past_seqlen = past[0].size(3)
