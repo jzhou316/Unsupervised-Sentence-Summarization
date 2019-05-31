@@ -86,7 +86,7 @@ def simScoreNext(template_vec,
 
 def simScoreNext_GPT2(template_vec,
                       word_list,
-                      g2,
+                      ge,
                       bpe2word='last',
                       prevs_state=None,
                       prevs_align=None,
@@ -103,7 +103,7 @@ def simScoreNext_GPT2(template_vec,
     Input:
         template_vec (torch.Tensor): template sentence GPT-2 embedding vectors
         word_list (list): a list of next candidate words
-        g2 (:class:`GPT2Embedder`): a `GPT2Embedder` object for embedding words using GPT-2
+        ge (:class:`GPT2Embedder`): a `GPT2Embedder` object for embedding words using GPT-2
         bpe2word (str): how to turn the BPE vectors into word vectors.
             'last': last hidden state; 'avg': average hidden state.
         prevs_state (list[torch.Tensor]): previous hidden states for the GPT-2 model
@@ -126,7 +126,7 @@ def simScoreNext_GPT2(template_vec,
         # in the middle of a sentence, sequential update
         add_bos = False      
     
-    embeddings, states = g2.embed_words(word_list, add_bos=add_bos, bpe2word=bpe2word, initial_state=prevs_state)
+    embeddings, states = ge.embed_words(word_list, add_bos=add_bos, bpe2word=bpe2word, initial_state=prevs_state)
     
     scores = []
     indices = []
