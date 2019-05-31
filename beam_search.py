@@ -379,7 +379,7 @@ class Beam():
         
         return nexttopKK, endbus
     
-    def combscoreK_GPT2(self, bulist, K, template_vec, GPT2_tokenizer, GPT2_model, LMModel,
+    def combscoreK_GPT2(self, bulist, K, template_vec, ge, LMModel,
                   word_list=None, subvocab=None, clustermask=None,
                   mono=True, normalized=True, renorm=False, temperature=1,
                   bpe2word='last', alpha=0.01, stopbyLMeos=False, ifadditive=False):
@@ -408,7 +408,7 @@ class Beam():
         states_allbeam = []
         for (i, bu) in enumerate(bulist):
             try:
-                scores, indices, states = simScoreNext_GPT2(template_vec, word_list, GPT2_tokenizer, GPT2_model,
+                scores, indices, states = simScoreNext_GPT2(template_vec, word_list, ge,
                                                    prevs_state=bu.gpt2_state,
                                                    prevs_align=bu.align_loc if mono else None,
                                                    normalized=normalized, bpe2word=bpe2word)
