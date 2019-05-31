@@ -26,6 +26,18 @@ class GPT2Embedder(nn.Module):
         
         self.model.to(self.cuda_device)
         self.model.eval()        # we only use the evaluation mode of the pretrained model
+    
+        self._bos_id = self.enc.encoder['<|endoftext|>']
+        self._bos_past = None
+        
+    @property
+    def bos_past(self):
+        if self._bos_past is not None:
+            return self._bos_past
+        else:
+            with torch.no_grad():
+                _, self._bos_past = self.model(torch.tensor([[self._bos_id]], device=self.cuda_device), past=None)
+            return self._bos_past
         
     def embed_sentence(self, sentence, add_bos=False, add_eos=False, bpe2word='last', initial_state=None):
         '''
@@ -47,10 +59,8 @@ class GPT2Embedder(nn.Module):
         assert bpe2word in ['last', 'avg']
         
         if add_bos:
-            bos = self.enc.encoder['<|endoftext|>']
-            with torch.no_grad():
-                # initial_state is not used when 'add_bos' is True
-                hid, past = self.model(torch.tensor([[bos]], device=self.cuda_device), past=None)
+            # initial_state is not used when 'add_bos' is True
+            past = self.bos_past
         else:
             past = initial_state
             
@@ -98,6 +108,61 @@ class GPT2Embedder(nn.Module):
             embeddings (torch.Tensor): GPT-2 vectors for the words, size (len(words), 768)
             states (List[List[torch.Tensor]]): GPT-2 internal states for the past, a list of length len(words)
         '''
+        assert isinstance(words, list), 'input "words" should be a list of candidate word types for the next step.'
+        assert bpe2word in ['last', 'avg']
         
+        if add_bos:
+            # initial_state is not used when 'add_bos' is True
+            past = self.bos_past
+        else:
+            past = initial_state
+            
+        if past is None:
+            bos_sp = ''        # begin of sentence: whether there is a space or not
+        else:
+            bos_sp = ' '
         
+        n = len(words)
+        bpe_list = [self.enc.encode(bos_sp + w) for w in words]
+        bpe_lens = [len(b) for b in bpe_list]
         
+        ## padding to for a batch
+        padding = 0
+        max_seqlen = max(bpe_lens)
+        bpe_list = [b + [padding] * (max_seq_len - l) for b, l in zip(bpe_list, bpe_lens)]
+        bpe_padded = torch.tensor(bpe_list, device=self.cuda_device)        # size (n, max_seqlen)
+        if past is not None:
+            past_seqlen = past[0].size(3)
+            past = [p.expand(-1, n, -1, -1, -1) for p in past]        # same past internal states for every word in the batch
+        else:
+            past_seqlen = 0
+        
+        ## run GPT-2 model
+        with torch.no_grad():
+            hid, mid = self.model(bpe_padded, past=past)
+        
+        ## extract the hidden states of words through indexing
+        if bpe2word == 'last':
+            # method 1: torch.gather
+            index = torch.tensor(bpe_lens, device=self.cuda_device).reshape(n, 1, 1).expand(-1, -1, hid.size(2)) - 1
+            embeddings = torch.gather(hid, 1, index).squeeze(1)
+            # method 2: for loop
+#             embeddings = hid.new_zeros(n, hid.size(2))
+#             for i in range(n):
+#                 embeddings[i] = hid[i, bpe_lens[i] - 1]
+        elif bpe2word == 'avg':
+            a = torch.arange(max_seqlen, device=self.cuda_device).view(1, -1).expand(n, -1)
+            b = torch.tensor(bpe_lens, device=self.cuda_device).view(-1, 1)
+            mask = a >= b        # size (n, max_seqlen)
+            hid[mask] = 0        # mask out the padded position embeddings
+            embeddings = hid.sum(dim=1) / b.float()
+        else:
+            raise ValueError
+        
+        ## index out the internal states
+        states = torch.cat(mid, dim=0)        # size (2 * 12, n, 12, past_seqlen + max_seqlen, 64)
+        states = torch.split(states, 1, dim=1)        # list of length n
+        states = [torch.chunk(s.index_select(3, torch.arange(past_seqlen + l, device=self.cuda_device)), 12, dim=0)
+                  for s, l in zip(states, bpe_lens)]
+        
+        return embeddings, states
