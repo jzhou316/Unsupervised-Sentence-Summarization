@@ -33,8 +33,14 @@ def pickElmoForwardLayer(embedding, elmo_layer='avg'):
     return embedding
 
 
-def simScoreNext(template_vec, word_list, ee, batch_size=1024, prevs_state=None,
-                 prevs_align=None, normalized=True, elmo_layer='avg'):
+def simScoreNext(template_vec,
+                 word_list,
+                 ee,
+                 batch_size=1024,
+                 prevs_state=None,
+                 prevs_align=None,
+                 normalized=True,
+                 elmo_layer='avg'):
     '''
     Score the next tokens based on sentence level similarity, with previous alignment fixed.
     
@@ -80,8 +86,7 @@ def simScoreNext(template_vec, word_list, ee, batch_size=1024, prevs_state=None,
 
 def simScoreNext_GPT2(template_vec,
                       word_list,
-                      tokenizer,
-                      model,
+                      g2,
                       bpe2word='last',
                       prevs_state=None,
                       prevs_align=None,
@@ -98,8 +103,7 @@ def simScoreNext_GPT2(template_vec,
     Input:
         template_vec (torch.Tensor): template sentence GPT-2 embedding vectors
         word_list (list): a list of next candidate words
-        tokenizer (pytorch_pretrained_bert.tokenization_gpt2.GPT2Tokenizer): GPT-2 tokenizer
-        model (pytorch_pretrained_bert.modeling_gpt2.GPT2Model): GPT-2 Model
+        g2 (:class:`GPT2Embedder`): a `GPT2Embedder` object for embedding words using GPT-2
         bpe2word (str): how to turn the BPE vectors into word vectors.
             'last': last hidden state; 'avg': average hidden state.
         prevs_state (list[torch.Tensor]): previous hidden states for the GPT-2 model
@@ -110,71 +114,26 @@ def simScoreNext_GPT2(template_vec,
     Output:
         scores (torch.Tensor): unsorted one-token similarity scores
         indices (torch.LongTensor): matched indices in template_vec for each token
-        states (list): corresponding GPT-2 hidden states
+        states (list): corresponding GPT-2 past internal hidden states
     '''
     assert bpe2word in ['last', 'avg']
     
-    device = next(model.parameters()).device
-    model.eval()
-    
-    ## bpe encoding of the candidate words
     if prevs_state is None:
         # beginning of sentence, the first token
         assert prevs_align is None, 'Nothing should be passed in when no history.'
-        bpe_list = [tokenizer.encode(w) for w in word_list]
+        add_bos = True
     else:
         # in the middle of a sentence, sequential update
-        prevs_state = [p.expand(-1, len(word_list), -1, -1, -1) for p in prevs_state]    # batch
-        bpe_list = [tokenizer.encode(' ' + w) for w in word_list]        
-
-    bpe_lens = [len(b) for b in bpe_list]
-
-    ## padding to form a batch
-    padding = 0
-    size = max(bpe_lens)
-    bpe_list = [b + [padding] * (size - l) for b, l in zip(bpe_list, bpe_lens)]
-    bpe_padded = torch.tensor(bpe_list, device=device)        # size (len(word_list), max(bpe_lens))
+        add_bos = False      
     
-    ## run GPT-2 model
-    start = time.time()
-    with torch.no_grad():
-        hid, mid = model(bpe_padded, past=prevs_state)        # hid size: (len(word_list), max(bpe_lens), 768)
-    print('run GPT-2: ' + timeSince(start))
-    
-    ## extract the hidden states of words through indexing
-    start = time.time()
-    if bpe2word == 'last':
-#         index = torch.tensor(bpe_lens, device=device).reshape(hid.size(0), 1, 1).expand(-1, -1, hid.size(2)) - 1
-#         print(f'calculate index: {time.time()-start}')
-#         embeddings = torch.gather(hid, 1, index).squeeze(1)
-        embeddings = hid.new_zeros(hid.size(0), hid.size(2))
-        for i in range(hid.size(0)):
-            embeddings[i] = hid[i, bpe_lens[i] - 1]
-    elif bpe2word == 'avg':
-        a = torch.arange(size, device=device).view(1, -1).expand(hid.size(0), -1)
-        b = torch.tensor(bpe_lens, device=device).view(-1, 1)
-        mask = a >= b        # size (len(word_list), max(bpe_lens))
-        print(f'calculate mask: ' + timeSince(start))
-        hid[mask] = 0        # mask out the padded position embeddings
-        embeddings = hid.sum(dim=1) / b.float()
-    else:
-        raise ValueError
-    print(f'extract correct embeddings: {time.time()-start}')
-    
-    ## index out the middle layer states
-    start = time.time()
-    states = torch.cat(mid, dim=0)        # size (2 * 12, len(word_list), 12, max(bpe_lens), 64)
-    states = torch.split(states, 1, dim=1)    # list of size len(word_list)
-    states = [torch.chunk(s.index_select(3, torch.arange(l, device=device)), 12, dim=0)
-             for s, l in zip(states, bpe_lens)]
-    print(f'extract correct states: {time.time()-start}')
+    embeddings, states = g2.embed_words(word_list, add_bos=add_bos, bpe2word=bpe2word, initial_state=prevs_state)
     
     scores = []
     indices = []
     print('Calculating similarities ---')
-    start = time.time()
+#     start = time.time()
     scores, indices = OneTokenMatch(template_vec, embeddings, normalized=normalized, starting_loc=prevs_align)
-    print('Similarities: ' + timeSince(start))
+#     print('Similarities: ' + timeSince(start))
         
     return scores, indices, states
 
