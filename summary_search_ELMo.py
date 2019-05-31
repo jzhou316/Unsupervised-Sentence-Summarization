@@ -192,8 +192,8 @@ arttxtpath = '/n/rush_lab/users/jzhou/sentence-compression/dataclean/eval_src_10
 vocab_path = '../LM/LSTM/models_sc/vocabsctgt.pkl'
 modelclass_path = '../LM/LSTM'
 model_path = '../LM/LSTM/models_sc/sctgt_LSTM_1024_untied.pth'
-closeword = 'vocabsctgtCloseWord'
-closeword_lmemb = 'vocabsctgtCloseWord_1024_untied_'
+closeword = './voctbls/vocabsctgtCloseWord'
+closeword_lmemb = './voctbls/vocabsctgtCloseWord_1024_untied_'
 savedir = './results_sc_1024_untied/'
 
 
@@ -212,9 +212,9 @@ savedir = './results_sc_untied/'
 vocab_path = '../LM/LSTM/models/vocabTle.pkl'
 modelclass_path = '../LM/LSTM'
 model_path = '../LM/LSTM/models/Tle_LSTM_untied.pth'
-closeword = 'vocabTleCloseWord'
-closeword_lmemb = 'vocabTleCloseWord_untied_'
-savedir = './results_untied/'
+closeword = './voctbls/vocabTleCloseWord'
+closeword_lmemb = './voctbls/vocabTleCloseWord_untied_'
+savedir = './results_LMuntied_elmo/'
 '''
 
 # vocab_path = '../LM/LSTM/models/vocabTle.pkl'
@@ -278,7 +278,7 @@ def parse_args():
     parser.add_argument('--model', type=str, default=model_path, help='pre-trained language model')
     parser.add_argument('--closeword', type=str, default=closeword, help='character embedding close word tables')
     parser.add_argument('--closeword_lmemb', type=str, default=closeword_lmemb, help='LM output embedding close word tables')
-    parser.add_argument('--savedir', type=str, default=savedir, help='directory to save results (ending with "/")')
+    parser.add_argument('--savedir', type=str, default=savedir, help='directory to save results')
     # beam search parameters
     parser.add_argument('--begineos', type=int, default=int(begineos), help='whether to start with <eos>')
     parser.add_argument('--appendsenteos', type=int, default=int(appendsenteos), help='whether to append <eos> at the end of source sentence')
@@ -389,7 +389,7 @@ if __name__ == '__main__':
     savedir = args.savedir
 #     savedir = './results/'
     
-    smrypath = savedir + 'smry_' + basename + f'_Ks{beam_width_start}' + f'_clust{int(cluster)}'
+    smrypath = os.path.join(savedir, 'smry_') + basename + f'_Ks{beam_width_start}' + f'_clust{int(cluster)}'
     
     if renorm:
         smrypath += f'_renorm{int(renorm)}'
