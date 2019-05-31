@@ -397,7 +397,7 @@ if __name__ == '__main__':
     if temp != 1:
         smrypath += f'_temper{temp}'
     if bpe2word != 'last':
-        smrypath += f'_BPE{elmo_layer}'
+        smrypath += f'_BPE{bpe2word}'
 
 #     smrypath += f'_eosavg{int(eosavgemb)}' + f'_n{numwords}'
     smrypath += f'_n{numwords}'

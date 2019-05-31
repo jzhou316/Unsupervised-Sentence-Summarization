@@ -2,3 +2,5 @@ __pycache__
 
 voctbls/*
 results_gpt2/*
+
+*.sh
