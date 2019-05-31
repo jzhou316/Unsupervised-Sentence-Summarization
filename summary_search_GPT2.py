@@ -9,7 +9,7 @@ import argparse
 
 from pre_closetables import ELMoBotEmbedding, findclosewords_vocab
 
-from elmo_sequential_embedder import ElmoEmbedderForward
+from gpt2_sequential_embedder import GPT2Embedder
 # from pre_word_list import findwordlist, findwordlist_screened
 from pre_word_list import findwordlist_screened2
 from lm_subvocab import clmk_nn
@@ -27,7 +27,7 @@ def gensummary_gpt2(template_vec,
                     mono=True,
                     renorm=True,
                     temperature=1,
-                    elmo_layer='avg',
+                    bpe2word='last',
                     max_step = 20,
                     beam_width = 10,
                     beam_width_start = 10,
@@ -52,7 +52,7 @@ def gensummary_gpt2(template_vec,
         mono: whether to keep monotonicity contraint. Default: True.
         renorm: whether to renormalize the probabilities over the sub-vocabulary. Default: True.
         Temperature: temperature applied to the softmax in the language model. Default: 1.
-        elmo_layer: which ELMo layer to use as the word type representation. Choose from ['avg', 'cat', 'bot', 'mid', 'top']. Default: 'avg'.
+        bpe2word: how to turn the BPE vectors into word vectors. Choose from ['last', 'avg']. Default: 'last'.
         max_step: maximum number of beam steps.
         beam_width: beam width.
         beam_width_start: beam width of the first step.
@@ -80,9 +80,9 @@ def gensummary_gpt2(template_vec,
     
     # first step: start with 'beam_width_start' best matched words
     beam.beamstep(beam_width_start,
-                  beam.combscoreK,
+                  beam.combscoreK_GPT2,
                   template_vec=template_vec,
-                  ee=ee,
+                  ge=ge,
                   LMModel=LMModel,
                   word_list=word_list,
                   subvocab=subvocab,
@@ -90,7 +90,7 @@ def gensummary_gpt2(template_vec,
                   alpha=alpha_start,
                   renorm=renorm,
                   temperature=temperature,
-                  elmo_layer=elmo_layer,
+                  bpe2word=bpe2word,
                   normalized=True,
                   ifadditive=False,
                   **kwargs)
@@ -99,9 +99,9 @@ def gensummary_gpt2(template_vec,
     for s in range(max_step):
         print(f'beam step {s+1} ' + '-' * 50 + '\n')
         beam.beamstep(beam_width,
-                      beam.combscoreK,
+                      beam.combscoreK_GPT2,
                       template_vec=template_vec,
-                      ee=ee,
+                      ge=ge,
                       LMModel=LMModel,
                       word_list=word_list,
                       subvocab=subvocab,
@@ -111,7 +111,7 @@ def gensummary_gpt2(template_vec,
                       renorm=renorm,
                       temperature=temperature,
                       stopbyLMeos=stopbyLMeos,
-                      elmo_layer=elmo_layer,
+                      bpe2word=bpe2word,
                       normalized=True,
                       ifadditive=False,
                       **kwargs)
@@ -174,7 +174,7 @@ def fixlensummary(beam, length=-1):
 
 
 ##### input arguments
-arttxtpath = '../LM/data/Giga-sum/input_unk_250.txt'
+#arttxtpath = '../LM/data/Giga-sum/input_unk_250.txt'
 #arttxtpath = '../LM/data/Giga-sum/input_unk_251-500.txt'
 #arttxtpath = '../LM/data/Giga-sum/input_unk_501-750.txt'
 #arttxtpath = '../LM/data/Giga-sum/input_unk_751-1000.txt'
@@ -183,19 +183,20 @@ arttxtpath = '../LM/data/Giga-sum/input_unk_250.txt'
 #arttxtpath = '../LM/data/Giga-sum/input_unk_1501-1750.txt'
 #arttxtpath = '../LM/data/Giga-sum/input_unk_1751-1951.txt'
 
-#arttxtpath = '../LM/data/Giga-sum/input_unk.txt'
+arttxtpath = '../LM/data/Giga-sum/input_unk.txt'
 
 devid = 0
 
+'''
 arttxtpath = '/n/rush_lab/users/jzhou/sentence-compression/dataclean/eval_src_1000_unk.txt'
 
 vocab_path = '../LM/LSTM/models_sc/vocabsctgt.pkl'
 modelclass_path = '../LM/LSTM'
 model_path = '../LM/LSTM/models_sc/sctgt_LSTM_1024_untied.pth'
-closeword = 'vocabsctgtCloseWord'
-closeword_lmemb = 'vocabsctgtCloseWord_1024_untied_'
+closeword = './voctbls/vocabsctgtCloseWord'
+closeword_lmemb = './voctbls/vocabsctgtCloseWord_1024_untied_'
 savedir = './results_sc_1024_untied/'
-
+'''
 
 '''
 arttxtpath = '/n/rush_lab/users/jzhou/sentence-compression/dataclean/eval_src_1000_unk.txt'
@@ -203,19 +204,19 @@ arttxtpath = '/n/rush_lab/users/jzhou/sentence-compression/dataclean/eval_src_10
 vocab_path = '../LM/LSTM/models_sc/vocabsctgt.pkl'
 modelclass_path = '../LM/LSTM'
 model_path = '../LM/LSTM/models_sc/sctgt_LSTM_untied.pth'
-closeword = 'vocabsctgtCloseWord'
-closeword_lmemb = 'vocabsctgtCloseWord_untied_'
+closeword = './voctbls/vocabsctgtCloseWord'
+closeword_lmemb = './voctbls/vocabsctgtCloseWord_untied_'
 savedir = './results_sc_untied/'
+'''
 
-'''
-'''
+
 vocab_path = '../LM/LSTM/models/vocabTle.pkl'
 modelclass_path = '../LM/LSTM'
 model_path = '../LM/LSTM/models/Tle_LSTM_untied.pth'
-closeword = 'vocabTleCloseWord'
-closeword_lmemb = 'vocabTleCloseWord_untied_'
-savedir = './results_untied/'
-'''
+closeword = './voctbls/vocabTleCloseWord'
+closeword_lmemb = './voctbls/vocabTleCloseWord_untied_'
+savedir = './results_LMuntied_gpt2/'
+
 
 # vocab_path = '../LM/LSTM/models/vocabTle.pkl'
 # modelclass_path = '../LM/LSTM'
@@ -249,7 +250,7 @@ beam_width_start = 10
 renorm = False
 cluster = True
 temperature = 1
-elmo_layer = 'avg'
+bpe2word = 'last'
 alpha = 0.1
 alpha_start = alpha
 stopbyLMeos = False
@@ -278,18 +279,18 @@ def parse_args():
     parser.add_argument('--model', type=str, default=model_path, help='pre-trained language model')
     parser.add_argument('--closeword', type=str, default=closeword, help='character embedding close word tables')
     parser.add_argument('--closeword_lmemb', type=str, default=closeword_lmemb, help='LM output embedding close word tables')
-    parser.add_argument('--savedir', type=str, default=savedir, help='directory to save results (ending with "/")')
+    parser.add_argument('--savedir', type=str, default=savedir, help='directory to save results')
     # beam search parameters
     parser.add_argument('--begineos', type=int, default=int(begineos), help='whether to start with <eos>')
     parser.add_argument('--appendsenteos', type=int, default=int(appendsenteos), help='whether to append <eos> at the end of source sentence')
-    parser.add_argument('--eosavgemb', type=int, default=int(eosavgemb), help='whether to encode <eos> using average hidden states')
+    parser.add_argument('--eosavgemb', type=int, default=int(eosavgemb), help='whether to encode <eos> using average hidden states (deprecated)')
     parser.add_argument('--max_step', type=int, default=max_step, help='maximum beam step')
     parser.add_argument('--beam_width', type=int, default=beam_width, help='beam width')
     parser.add_argument('--beam_width_start', type=int, default=beam_width_start, help='beam width at first step')
     parser.add_argument('--renorm', type=int, default=int(renorm), help='whether to renormalize the probabilities over the sub-vocabulary')
     parser.add_argument('--cluster', type=int, default=int(cluster), help='whether to do clustering for the sub-vocabulary probabilities')
     parser.add_argument('--temp', type=float, default=temperature, help='temperature used to smooth the output of the softmax layer')
-    parser.add_argument('--elmo_layer', type=str, default=elmo_layer, choices=['bot', 'mid', 'top', 'avg', 'cat'], help='elmo layer to use')
+    parser.add_argument('--bpe2word', type=str, default=bpe2word, choices=['last', 'avg'], help='how to use BPE hidden states to represent a word')
     parser.add_argument('--alpha', type=float, default=alpha, help='mixture coefficient for LM')
     parser.add_argument('--alpha_start', type=float, default=alpha_start, help='mixture coefficient for LM for the first step')
     parser.add_argument('--stopbyLMeos', type=int, default=int(stopbyLMeos), help='whether to stop the sentence solely by LM <eos> prediction')
@@ -334,7 +335,7 @@ if __name__ == '__main__':
     renorm = args.renorm
     cluster = args.cluster
     temp = args.temp
-    elmo_layer = args.elmo_layer
+    bpe2word = args.bpe2word
     alpha = args.alpha
     alpha_start = args.alpha_start
     stopbyLMeos = args.stopbyLMeos
@@ -353,8 +354,8 @@ if __name__ == '__main__':
     g.close()
     nsents = len(sents)
     
-    ##### load the ELMo forward embedder class
-    ee = ElmoEmbedderForward(cuda_device=devid)
+    ##### load the GPT-2 embedder class
+    ge = GPT2Embedder(cuda_device=devid)
     
     ##### load vocabulary and the pre-trained language model
     vocab = pickle.load(open(vocab_path, 'rb'))
@@ -389,16 +390,17 @@ if __name__ == '__main__':
     savedir = args.savedir
 #     savedir = './results/'
     
-    smrypath = savedir + 'smry_' + basename + f'_Ks{beam_width_start}' + f'_clust{int(cluster)}'
+    smrypath = os.path.join(savedir, 'smry_') + basename + f'_Ks{beam_width_start}' + f'_clust{int(cluster)}'
     
     if renorm:
         smrypath += f'_renorm{int(renorm)}'
     if temp != 1:
         smrypath += f'_temper{temp}'
-    if elmo_layer != 'avg':
-        smrypath += f'_EL{elmo_layer}'
+    if bpe2word != 'last':
+        smrypath += f'_BPE{elmo_layer}'
 
-    smrypath += f'_eosavg{int(eosavgemb)}' + f'_n{numwords}'
+#     smrypath += f'_eosavg{int(eosavgemb)}' + f'_n{numwords}'
+    smrypath += f'_n{numwords}'
     
     if numwords_outembed != numwords:
         smrypath += f'_ns{numwords_outembed}'
@@ -438,27 +440,16 @@ if __name__ == '__main__':
         if cluster:
             clustermask = clmk_nn(embedmatrix, subvocab)
 
-        ### ELMo embedding of the template sentence
+        ### GPT-2 embedding of the template sentence
         if eosavgemb is False:
-            template_vec, _ = ee.embed_sentence(template.split(), add_bos=True)
+            template_vec, _ = ge.embed_sentence(template.split(), add_bos=True, bpe2word=bpe2word)
         else:
-            tt = template.split()[:-1]
-            hiddens = []
-            template_vec = None
-            current_hidden = None
-            for i in range(len(tt)):
-                current_embed, current_hidden = ee.embed_sentence([tt[i]], add_bos=True if i == 0 else False, initial_state=current_hidden)
-                hiddens.append(current_hidden)
-                template_vec = current_embed if template_vec is None else torch.cat([template_vec, current_embed], dim=1) 
-            hiddens_h, hiddens_c = zip(*hiddens)
-            hiddens_avg = (sum(hiddens_h) / len(hiddens_h), sum(hiddens_c) / len(hiddens_c))
-            eosavg, _ = ee.embed_sentence(['<eos>'], initial_state=hiddens_avg)
-            template_vec = torch.cat([template_vec, eosavg], dim=1)
+            raise ValueError
 
         ### beam search
         max_step_temp = min([len(template.split()), max_step])
-        beam = gensummary_elmo(template_vec,
-                               ee,
+        beam = gensummary_gpt2(template_vec,
+                               ge,
                                vocab,
                                LMModel,
                                word_list,
@@ -466,7 +457,7 @@ if __name__ == '__main__':
                                clustermask=clustermask if cluster else None,
                                renorm=renorm,
                                temperature=temp,
-                               elmo_layer=elmo_layer,
+                               bpe2word=bpe2word,
                                max_step=max_step_temp,
                                beam_width=beam_width,
                                beam_width_start=beam_width_start,
