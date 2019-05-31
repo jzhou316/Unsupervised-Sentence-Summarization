@@ -487,6 +487,10 @@ if __name__ == '__main__':
                         g_list[j].write('\n')
                 else:
                     g_list[j].write('\n')
+                
+                if (ind + 1) % 10 == 0:
+                    g_list[j].flush()
+                    os.fsync(g_list[j].fileno())
         else:
             ssa = sortsummary(beam, beta=beta)
             g.write('-' * 5 + f'<{ind+1}>' + '-' * 5 + '\n')
@@ -500,6 +504,10 @@ if __name__ == '__main__':
                     g.writelines(['%d,   ' % loc for loc in ssa[m][2]])
                     g.write('\n')
                 g.write('\n')
+            
+            if (ind + 1) % 10 == 0:
+                g.flush()
+                os.fsync(g.fileno())
                 
     print('time elapsed %s' % timeSince(start))
     if fixedlen:
