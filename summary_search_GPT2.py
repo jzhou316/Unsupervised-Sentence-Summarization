@@ -195,7 +195,7 @@ modelclass_path = '../LM/LSTM'
 model_path = '../LM/LSTM/models_sc/sctgt_LSTM_1024_untied.pth'
 closeword = './voctbls/vocabsctgtCloseWord'
 closeword_lmemb = './voctbls/vocabsctgtCloseWord_1024_untied_'
-savedir = './results_sc_1024_untied/'
+savedir = './results_sc_1024_untied_gpt2/'
 '''
 
 '''
