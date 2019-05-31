@@ -17,8 +17,8 @@ from beam_search import Beam
 from utils import timeSince
 
 
-def gensummary_elmo(template_vec,
-                    ee,
+def gensummary_gpt2(template_vec,
+                    ge,
                     vocab,
                     LMModel,
                     word_list,
@@ -43,7 +43,7 @@ def gensummary_elmo(template_vec,
     
     Input:
         template_vec: forward only ELMo embeddings of the source sentence. 'torch.Tensor' of size (3, seq_len, 512).
-        ee: 'elmo_sequential_embedder.ElmoEmbedderForward' object.
+        ge: 'gpt2_sequential_embedder.GPT2Embedder' object.
         vocab: 'torchtext.vocab.Vocab' object. Should be the same as is used for the pretrained language model.
         LMModel: a pretrained language model on the summary sentences.
         word_list: a list of words in the vocabulary to work with. 'List'.
@@ -73,10 +73,10 @@ def gensummary_elmo(template_vec,
     # Beam Search: initialization
     if begineos:
         beam = Beam(1, vocab, init_ids=[vocab.stoi['<eos>']], device=device,
-                sim_score=0, lm_score=0, lm_state=None, elmo_state=None, align_loc=None)
+                sim_score=0, lm_score=0, lm_state=None, gpt2_state=None, align_loc=None)
     else:
         beam = Beam(1, vocab, init_ids=[None], device=device,
-                sim_score=0, lm_score=0, lm_state=None, elmo_state=None, align_loc=None)
+                sim_score=0, lm_score=0, lm_state=None, gpt2_state=None, align_loc=None)
     
     # first step: start with 'beam_width_start' best matched words
     beam.beamstep(beam_width_start,
