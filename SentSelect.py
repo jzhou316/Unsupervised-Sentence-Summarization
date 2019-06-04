@@ -27,9 +27,14 @@ def copy_rate(sent1, sent2):
 sourcepath = '/n/rush_lab/users/jzhou/LM/data/Giga-sum/input_unk.txt'
 refpath = '/n/rush_lab/users/jzhou/LM/data/Giga-sum/task1_ref0.txt'
 
+'''
 gensmrypath = '/n/rush_lab/users/jzhou/5.0_cluster/results_untied/smry_input_unk_Ks10_clust0_temper10.0_ELcat_eosavg0_n6_ns10_nf300_a0.1_b0.0_all.txt'
-
 results_dir = './results_untied/'
+'''
+
+gensmrypath = './results_gpt2/smry_input_unk_Ks10_clust1_n6_ns10_nf300_a0.1_b0.0_all.txt'
+results_dir = './results_gpt2/'
+
 lp = 0.1
 # lp = 0.2
 
