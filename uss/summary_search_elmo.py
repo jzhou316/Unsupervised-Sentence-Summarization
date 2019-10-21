@@ -1,14 +1,14 @@
-import torch
 import pickle
 import time
 import math
 import sys
 import os
-from tqdm import tqdm
 import argparse
 
-from pre_closetables import ELMoBotEmbedding, findclosewords_vocab
+import torch
+from tqdm import tqdm
 
+from pre_closetables import ELMoBotEmbedding, findclosewords_vocab
 from elmo_sequential_embedder import ElmoEmbedderForward
 # from pre_word_list import findwordlist, findwordlist_screened
 from pre_word_list import findwordlist_screened2
@@ -42,30 +42,31 @@ def gensummary_elmo(template_vec,
     The contextual matching here is on top of pretrained ELMo embeddings.
     
     Input:
-        template_vec: forward only ELMo embeddings of the source sentence. 'torch.Tensor' of size (3, seq_len, 512).
-        ee: 'elmo_sequential_embedder.ElmoEmbedderForward' object.
-        vocab: 'torchtext.vocab.Vocab' object. Should be the same as is used for the pretrained language model.
-        LMModel: a pretrained language model on the summary sentences.
-        word_list: a list of words in the vocabulary to work with. 'List'.
-        subvocab: 'torch.LongTensor' consisting of the indices of the words corresponding to 'word_list'.
-        clustermask: a binary mask for each of the sub-vocabulary word. 'torch.ByteTensor' of size (len(sub-vocabulary), len(vocabulary)). Default:None.
-        mono: whether to keep monotonicity contraint. Default: True.
-        renorm: whether to renormalize the probabilities over the sub-vocabulary. Default: True.
-        Temperature: temperature applied to the softmax in the language model. Default: 1.
-        elmo_layer: which ELMo layer to use as the word type representation. Choose from ['avg', 'cat', 'bot', 'mid', 'top']. Default: 'avg'.
-        max_step: maximum number of beam steps.
-        beam_width: beam width.
-        beam_width_start: beam width of the first step.
-        alpha: the amount of language model part used for scoring. The score is: (1 - \alpha) * similarity_logscore + \alpha * LM_logscore.
-        begineos: whether to begin with the special '<eos>' token as is trained in the language model. Note that ELMo has its own special beginning token. Default: True.
-        stopbyLMeos: whether to stop a sentence solely by the language model predicting '<eos>' as the top possibility. Default: False.
-        devid: device id to run the algorithm and LSTM language models. 'int', default: 0. -1 for cpu.
+        - template_vec (torch.Tensor): forward only ELMo embeddings of the source sentence. 'torch.Tensor' of size (3, seq_len, 512).
+        - ee (elmo_sequential_embedder.ElmoEmbedderForward): 'elmo_sequential_embedder.ElmoEmbedderForward' object.
+        - vocab (torchtext.vocab.Vocab): 'torchtext.vocab.Vocab' object. Should be the same as is used for the pretrained language model.
+        - LMModel (user defined torch.nn.Module): a pretrained language model on the summary sentences.
+        - word_list (list): a list of words in the vocabulary to work with. 'List'.
+        - subvocab (torch.LongTensor): 'torch.LongTensor' consisting of the indices of the words corresponding to 'word_list'.
+        - clustermask (torch.ByteTensor): a binary mask for each of the sub-vocabulary word. 'torch.ByteTensor' of size (len(sub-vocabulary), len(vocabulary)). Default:None.
+        - mono (bool): whether to keep monotonicity contraint. Default: True.
+        - renorm (bool): whether to renormalize the probabilities over the sub-vocabulary. Default: True.
+        - temperature (float): temperature applied to the softmax in the language model. Default: 1.
+        - elmo_layer (str): which ELMo layer to use as the word type representation. Choose from ['avg', 'cat', 'bot', 'mid', 'top']. Default: 'avg'.
+        - max_step (int): maximum number of beam steps.
+        - beam_width (int): beam width.
+        - beam_width_start (int): beam width of the first step.
+        - alpha (float): the amount of language model part used for scoring. The score is: (1 - \alpha) * similarity_logscore + \alpha * LM_logscore.
+        - alpha_start (float): the amount of language model part used for scoring, only for the first step. The score is: (1 - \alpha) * similarity_logscore + \alpha * LM_logscore.
+        - begineos (bool): whether to begin with the special '<eos>' token as is trained in the language model. Note that ELMo has its own special beginning token. Default: True.
+        - stopbyLMeos (bool): whether to stop a sentence solely by the language model predicting '<eos>' as the top possibility. Default: False.
+        - devid (int): device id to run the algorithm and LSTM language models. 'int', default: 0. -1 for cpu.
         **kwargs: other arguments input to function <Beam.beamstep>. 
-            E.g. normalized: whether to normalize the dot product when calculating the similarity, which makes it cosine similarity. Default: True.
-                 ifadditive: whether to use an additive model on mixing the probability scores. Default: False.
+            E.g. - normalized (bool): whether to normalize the dot product when calculating the similarity, which makes it cosine similarity. Default: True.
+                 - ifadditive (bool): whether to use an additive model on mixing the probability scores. Default: False.
     
     Output:
-        beam: 'Beam' object, recording all the generated sequences.
+        - beam (beam_search.Beam): 'Beam' object, recording all the generated sequences.
         
     """
     device = 'cpu' if devid == -1 else f'cuda:{devid}'
@@ -91,8 +92,8 @@ def gensummary_elmo(template_vec,
                   renorm=renorm,
                   temperature=temperature,
                   elmo_layer=elmo_layer,
-                  normalized=True,
-                  ifadditive=False,
+                  # normalized=True,
+                  # ifadditive=False,
                   **kwargs)
     
     # run beam search, until all sentences hit <EOS> or max_step reached
@@ -112,8 +113,8 @@ def gensummary_elmo(template_vec,
                       temperature=temperature,
                       stopbyLMeos=stopbyLMeos,
                       elmo_layer=elmo_layer,
-                      normalized=True,
-                      ifadditive=False,
+                      # normalized=True,
+                      # ifadditive=False,
                       **kwargs)
         # all beams reach termination
         if beam.endall:
@@ -127,10 +128,11 @@ def sortsummary(beam, beta=0):
     Sort the generated summaries by beam search, with length penalty considered.
     
     Input:
-        beam: 'Beam' object finished with beam search.
-        beta: length penalty when sorting. Default: 0 (no length penalty).
+        - beam (beam_search.Beam): 'Beam' object finished with beam search.
+        - beta (float): length penalty when sorting. Default: 0 (no length penalty).
+
     Output:
-        ssa: 'List[Tuple]' of (score_avg, sentence, alignment, sim_score, lm_score).
+        - ssa (list[tuple]): 'List[Tuple]' of (score_avg, sentence, alignment, sim_score, lm_score).
     """
     sents = []
     aligns = []
@@ -158,10 +160,11 @@ def fixlensummary(beam, length=-1):
     Pull out fixed length summaries from the beam search.
     
     Input:
-        beam: 'Beam' object finished with beam search.
-        length: wanted length of the summary.
+        - beam (beam_search.Beam): 'Beam' object finished with beam search.
+        - length (int): wanted length of the summary.
+
     Output:
-        ssa: 'List[Tuple]' of sorted (score, sentence, alignments, sim_score, lm_score).
+        - ssa (list[tuple]): 'List[Tuple]' of sorted (score, sentence, alignments, sim_score, lm_score).
     """
     assert length >=1 and length <= beam.step, 'invalid sentence length.'
     
@@ -173,20 +176,22 @@ def fixlensummary(beam, length=-1):
     return ssa
 
 
-##### input arguments
-arttxtpath = '../LM/data/Giga-sum/input_unk_250.txt'
-#arttxtpath = '../LM/data/Giga-sum/input_unk_251-500.txt'
-#arttxtpath = '../LM/data/Giga-sum/input_unk_501-750.txt'
-#arttxtpath = '../LM/data/Giga-sum/input_unk_751-1000.txt'
-#arttxtpath = '../LM/data/Giga-sum/input_unk_1001-1250.txt'
-#arttxtpath = '../LM/data/Giga-sum/input_unk_1251-1500.txt'
-#arttxtpath = '../LM/data/Giga-sum/input_unk_1501-1750.txt'
-#arttxtpath = '../LM/data/Giga-sum/input_unk_1751-1951.txt'
-
-#arttxtpath = '../LM/data/Giga-sum/input_unk.txt'
-
+########## some default parameters ##########
 devid = 0
 
+# for English giga words
+arttxtpath = './data/Giga-sum/input_unk_250.txt'
+#arttxtpath = './data/Giga-sum/input_unk_251-500.txt'
+#arttxtpath = './data/Giga-sum/input_unk_501-750.txt'
+#arttxtpath = './data/Giga-sum/input_unk_751-1000.txt'
+#arttxtpath = './data/Giga-sum/input_unk_1001-1250.txt'
+#arttxtpath = './data/Giga-sum/input_unk_1251-1500.txt'
+#arttxtpath = './data/Giga-sum/input_unk_1501-1750.txt'
+#arttxtpath = './data/Giga-sum/input_unk_1751-1951.txt'
+
+#arttxtpath = './data/Giga-sum/input_unk.txt'
+
+# for Google sentence compression dataset
 arttxtpath = '/n/rush_lab/users/jzhou/sentence-compression/dataclean/eval_src_1000_unk.txt'
 
 vocab_path = '../LM/LSTM/models_sc/vocabsctgt.pkl'
@@ -217,25 +222,8 @@ closeword_lmemb = './voctbls/vocabTleCloseWord_untied_'
 savedir = './results_LMuntied_elmo/'
 '''
 
-# vocab_path = '../LM/LSTM/models/vocabTle.pkl'
-# modelclass_path = '../LM/LSTM'
-# model_path = '../LM/LSTM/models/Tle_LSTM.pth'
-# closeword = 'vocabTleCloseWord'
-# closeword_lmemb = 'vocabTleCloseWord'
-# savedir = './results/'
 
 
-# vocab_path = '../LM/LSTM_LUC/models/vocabTle50k.pkl'
-# modelclass_path = '../LM/LSTM_LUC'
-# model_path = '../LM/LSTM_LUC/models/TleLUC_wtI_noB_0-0.0001-1Penalty.pth'
-# closeword = 'vocabTle50kCloseWord'
-# closeword_lmemb = 'vocabTle50kCloseWord'
-
-# vocab_path = '../4.0_cluster/vocabTle.pkl'                   # vocabulary for the pretrained language model
-# modelclass_path = '../LM/LSTM_MoS'
-# model_path = '../LM/LSTM_MoS/models/LMModelMoSTle2.pth'    
-# closeword = '../4.0_cluster/vocabTleCloseWord'        # character level word embeddings
-# closeword_lmemb = 'vocabTleCloseWord'
 
 
 ##### beam search parameters
