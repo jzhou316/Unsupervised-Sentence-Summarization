@@ -1,5 +1,8 @@
 __pycache__
 
+data/*
+lm_lstm_models/*
+
 voctbls/*
 results_gpt2/*
 
