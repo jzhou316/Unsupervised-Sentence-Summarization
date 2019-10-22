@@ -1,9 +1,11 @@
 __pycache__
+*.idea
 
 data/*
 lm_lstm_models/*
 
 voctbls/*
 results_gpt2/*
+results*
 
 *.sh
