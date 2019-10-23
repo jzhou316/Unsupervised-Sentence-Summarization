@@ -107,6 +107,8 @@ We also include the summary outputs from our unsupervised method for these two t
 
 ## Citing
 
+If you find the resources in this repository useful, please consider citing:
+
 ```
 @inproceedings{zhou2019simple,
   title={Simple Unsupervised Summarization by Contextual Matching},
