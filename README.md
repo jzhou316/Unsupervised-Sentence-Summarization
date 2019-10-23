@@ -99,6 +99,11 @@ This will generate a file named "smry_input_unk_Ks10_clust1_ELcat_eosavg0_n6_ns1
 
 Note that the Rouge evaluation is based on [files2rouge](https://github.com/pltrdy/files2rouge).
 
+## Data and Sample Output
+
+We have included the test sets of English Gigaword dataset and Google sentence compression evaluation set in the "./data" folder.
+
+We also include the summary outputs from our unsupervised method for these two test sets in "./results_elmo_giga" and "./results_elmo_sc" respectively.
 
 ## Citing
 
