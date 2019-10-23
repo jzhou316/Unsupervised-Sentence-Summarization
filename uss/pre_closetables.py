@@ -21,6 +21,7 @@ def ELMoBotEmbedding(itos, device=-1):
     
     return embedmatrix
 
+
 def findclosewords_vocab(vocab, embedmatrix, numwords=500, normalized=True, device='cpu'):
     """
     Find closest words for every word in the vocabulary.

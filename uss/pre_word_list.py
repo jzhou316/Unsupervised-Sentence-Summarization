@@ -15,7 +15,7 @@ def findwordlist(template, closewordind, vocab, numwords=10, addeos=False):
     if isinstance(template, str):
         template = template.split()
     templateind = closewordind.new_tensor([vocab.stoi[w] for w in template])
-#     subvocab = closewordind[templateind, :numwords].flatten().cpu()    # torch.flatten() only exists from PyTorch 0.4.1
+    # subvocab = closewordind[templateind, :numwords].flatten().cpu()  # torch.flatten() only exists from PyTorch 0.4.1
     subvocab = closewordind[templateind, :numwords].view(-1).cpu()
     if addeos:
         subvocab = torch.cat([subvocab, torch.LongTensor([vocab.stoi['<eos>']])])
@@ -27,7 +27,8 @@ def findwordlist(template, closewordind, vocab, numwords=10, addeos=False):
 
 def findwordlist_screened(template, closewordind, closewordind_outembed, vocab, numwords=10, addeos=False):
     """
-    Based on a template sentence, find the candidate word list, according to the character level RNN embeddings but screened by the output embeddings.
+    Based on a template sentence, find the candidate word list, according to the character level RNN embeddings but
+    screened by the output embeddings.
     
     Input:
         template: source sentence.
@@ -66,7 +67,8 @@ def findwordlist_screened(template, closewordind, closewordind_outembed, vocab, 
 def findwordlist_screened2(template, closewordind, closewordind_outembed, vocab, numwords=10,
                            numwords_outembed=None, numwords_freq=500, addeos=False):
     """
-    Based on a template sentence, find the candidate word list, according to the character level RNN embeddings but screened by the output embeddings, and keep the words that are in the top 'numwords_freq' list in the vocabulary.
+    Based on a template sentence, find the candidate word list, according to the character level RNN embeddings but
+    screened by the output embeddings, and keep the words that are in the top 'numwords_freq' list in the vocabulary.
     
     Input:
         template: source sentence.
@@ -108,5 +110,3 @@ def findwordlist_screened2(template, closewordind, closewordind_outembed, vocab,
     word_list = [vocab.itos[i] for i in subvocab_screened]
     
     return word_list, subvocab_screened
-    
-    

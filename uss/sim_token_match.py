@@ -1,11 +1,11 @@
-'''
+"""
 Sequential calculation of word similarities in an embedding space.
 Previous alignments are fixed once found.
 
-Each time, do the best word vector matching between a template sentence and a list of single tokens, based on cosine similarities or dot products.
+Each time, do the best word vector matching between a template sentence and a list of single tokens, based on
+cosine similarities or dot products.
 In the simplest case, do not require monotonicity.
-'''
-
+"""
 import torch
 
 
@@ -21,7 +21,8 @@ def OneTokenMatch(src, token_list, normalized=False, starting_loc=None):
         indices: the matched indices in 'src' for the best scores for each token.
     """
     if isinstance(token_list, list):
-        assert isinstance(token_list[0], torch.Tensor) and isinstance(src, torch.Tensor), 'source/template sequence must be torch.Tensor.'
+        assert isinstance(token_list[0], torch.Tensor) and isinstance(src, torch.Tensor), \
+            'source/template sequence must be torch.Tensor.'
         assert len(token_list[0].size()) == len(src.size()) == 2, 'input sequences must be 2D series.'
     elif isinstance(token_list, torch.Tensor):
         assert isinstance(src, torch.Tensor), 'source/template sequence must be torch.Tensor.'
@@ -32,7 +33,8 @@ def OneTokenMatch(src, token_list, normalized=False, starting_loc=None):
     if starting_loc is not None:
         # require monotonicity, by only looking at 'src' from or after 'starting_loc'
         # strict monotonicity
-        assert starting_loc < len(src) - 1, 'last word already matched to the last token in template, when requiring strict monotonicity.'
+        assert starting_loc < len(src) - 1, 'last word already matched to the last token in template, ' \
+                                            'when requiring strict monotonicity.'
         src = src[(starting_loc + 1):]
         # weak monotonicity
 #         assert starting_loc < len(src)
@@ -44,7 +46,7 @@ def OneTokenMatch(src, token_list, normalized=False, starting_loc=None):
         token_matrix = token_list
     else:
         raise TypeError
-    sim_table = torch.mm(src, token_matrix.t())        # size: (src_len, token_list_len) or (truncated_src_len, token_list_len)
+    sim_table = torch.mm(src, token_matrix.t())  # size: (src_len, token_list_len) or (truncated_src_len, token_list_len)
     
     if normalized:
         sim_table = sim_table / torch.ger(src.norm(2, 1), token_matrix.norm(2, 1))
@@ -64,10 +66,13 @@ def TokenMatch(src, tgt, mono=True, weakmono=False, normalized=True):
     
     Input:
         src: source sequence word embeddings. 'torch.Tensor' of size (src_seq_len, embed_dim).
-        tgt: short target sequence word embeddings to be matched to 'src'. 'torch.Tensor' of size (tgt_seq_len, embed_dim).
+        tgt: short target sequence word embeddings to be matched to 'src'. 'torch.Tensor' of size
+            (tgt_seq_len, embed_dim).
         mono: whether to constrain the alignments to be monotonic. Default: True.
-        weakmono: whether to relax the alignment monotonicity to be weak (non-strict). Only effective when 'mono' is True. Default: False.
-        normalized: whether to normalize the dot product in calculating word similarities, i.e. whether to use cosine similarity or just dot                     product. Default: True.
+        weakmono: whether to relax the alignment monotonicity to be weak (non-strict). Only effective when 'mono'
+            is True. Default: False.
+        normalized: whether to normalize the dot product in calculating word similarities, i.e. whether to use
+            cosine similarity or just dot product. Default: True.
     
     Output:
         similarity: sequence similarity, by summing the max similarities of the best alignment.

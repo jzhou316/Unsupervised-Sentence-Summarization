@@ -7,8 +7,8 @@ import argparse
 import torch
 from tqdm import tqdm
 
-from pre_closetables import ELMoBotEmbedding, findclosewords_vocab
 from elmo_sequential_embedder import ElmoEmbedderForward
+from pre_closetables import ELMoBotEmbedding, findclosewords_vocab
 # from pre_word_list import findwordlist, findwordlist_screened
 from pre_word_list import findwordlist_screened2
 from lm_subvocab import clmk_nn
