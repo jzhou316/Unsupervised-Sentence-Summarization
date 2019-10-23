@@ -6,6 +6,16 @@ lm_lstm_models/*
 
 voctbls/*
 results_gpt2/*
-results*
-
+results_elmo_giga/*
+results_elmo_sc/*
 *.sh
+
+!data/gigaword/README.md
+!data/gigaword/input.txt
+!data/gigaword/input_unk.txt
+!data/gigaword/task1_ref0.txt
+
+!results_elmo_giga/README.md
+!results_elmo_giga/smry_input_unk_Ks10_clust1_ELcat_eosavg0_n6_ns10_nf300_a0.1_b1.0_single.txt
+!results_elmo_sc/README.md
+!results_elmo_sc/smry_eval_src_1000_unk_Ks10_clust1_ELcat_eosavg0_n1_a0.1_b1.0_single.txt
