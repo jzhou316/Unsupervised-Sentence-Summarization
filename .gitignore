@@ -8,6 +8,7 @@ results_gpt2/*
 results_elmo_giga/*
 results_elmo_sc/*
 *.sh
+*.tar.gz
 
 !data/gigaword/README.md
 !data/gigaword/input.txt
