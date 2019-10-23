@@ -25,6 +25,13 @@ The code was based and tested on the following libraries:
 For Rouge evaluation, we used [files2rouge](https://github.com/pltrdy/files2rouge).
 
 
+## Datasets & Pre-trained Language Models
+
+| Data & Task  | Test Set & <br>Unsupervised Model Output | Summary LM & Vocabulary | Full Dataset |
+|:---:|:---:|:---:|:---:|
+| English Gigaword <br>(abstractive summarization) | [test data](./data/gigaword) <br> [model output](./results_elmo_giga) | [language model](https://drive.google.com/file/d/1iF0tLvoo74-o22-1jUjMTrLwK948sMKp/view?usp=sharing) | [full data](https://github.com/harvardnlp/sent-summary) |
+| Google Sentence Compression <br>(extractive summarization) | [test data](./data/sentence_compression) <br> [model output](./results_elmo_sc)| [language model](https://drive.google.com/file/d/1KVh7J6Mpj6W5YFV0DPAb81OwJSo26C7g/view?usp=sharing) | [full data](https://github.com/google-research-datasets/sentence-compression) |
+
 ## Unsupervised Summary Generation
 
 To generate summaries for a given corpus of source sentences, make sure the following two components are prepared:
