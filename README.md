@@ -36,7 +36,7 @@ For Rouge evaluation, we used [files2rouge](https://github.com/pltrdy/files2roug
 
 To generate summaries for a given corpus of source sentences, make sure the following two components are prepared:
 - The ELMo model contained in the [allennlp](https://github.com/allenai/allennlp) library package
-- A pre-trained LSTM based language model on the summary style short sentences (we have included our language modeling and training scripts in [lm_lstm](./lm_lstm), as well as our pre-trained models above)
+- A pre-trained LSTM based language model on the summary style short sentences (we have included our language modeling and training scripts in [lm_lstm](./lm_lstm), as well as our pre-trained models [above](#Datasets-&-Summary-Results-&-Pre-trained-Language-Models))
 
 ---
 
