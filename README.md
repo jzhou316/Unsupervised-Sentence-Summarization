@@ -15,6 +15,16 @@ The summary generation process is through beam search to maximize a product-of-e
 **Note:** as our generation process is left-to-right, we used only the forward model in ELMo. We also tested on the small version of GPT-2 after its release, but found it didn't not perform as well as ELMo in our setup.
 
 
+## Dependencies
+
+The code was based and tested on the following libraries:
+- python 3.6
+- PyTorch 0.4.1
+- allennlp 0.5.1
+
+For Rouge evaluation, we used [files2rouge](https://github.com/pltrdy/files2rouge).
+
+
 ## Unsupervised Summary Generation
 
 To generate summaries for a given corpus of source sentences, make sure the following two components are prepared:
@@ -87,4 +97,4 @@ where:
 
 This will generate a file named "smry_input_unk_Ks10_clust1_ELcat_eosavg0_n6_ns10_nf300_a0.1_b1.0_single.txt" in "./results_elmo_giga/", containing a single summary selected for each of the source sentences. And Rouge scores will be computed and printed, along with other statistics including copy rate, compression rate, and average summary length.
 
-Note that the Rouge evaluation is based on [file2rouge](https://github.com/pltrdy/files2rouge).
+Note that the Rouge evaluation is based on [files2rouge](https://github.com/pltrdy/files2rouge).
