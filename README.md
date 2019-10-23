@@ -98,3 +98,16 @@ where:
 This will generate a file named "smry_input_unk_Ks10_clust1_ELcat_eosavg0_n6_ns10_nf300_a0.1_b1.0_single.txt" in "./results_elmo_giga/", containing a single summary selected for each of the source sentences. And Rouge scores will be computed and printed, along with other statistics including copy rate, compression rate, and average summary length.
 
 Note that the Rouge evaluation is based on [files2rouge](https://github.com/pltrdy/files2rouge).
+
+
+## Citing
+
+```
+@inproceedings{zhou2019simple,
+  title={Simple Unsupervised Summarization by Contextual Matching},
+  author={Zhou, Jiawei and Rush, Alexander M},
+  booktitle={Proceedings of the 57th Annual Meeting of the Association for Computational Linguistics},
+  pages={5101--5106},
+  year={2019}
+}
+```
