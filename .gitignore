@@ -1,7 +1,6 @@
 __pycache__
 *.idea
 
-data/*
 lm_lstm_models/*
 
 voctbls/*
