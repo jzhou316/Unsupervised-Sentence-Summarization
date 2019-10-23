@@ -73,7 +73,13 @@ After obtaining the summary domain specific language model, we can do the **summ
 python uss/summary_search_elmo.py --src ./data/gigaword/input_unk.txt --modelclass ./lm_lstm --model ./lm_lstm_models/gigaword/Tle_LSTM_untied.pth --vocab ./lm_lstm_models/gigaword/vocabTle.pkl --n 6 --ns 10 --nf 300 --elmo_layer cat --alpha 0.1 --beta 0 --beam_width 10 --devid 0 --save_dir ./results_elmo_giga/
 ```
 
-Note that `--src` specifies the sentence corpus to be summarized, `--modelclass` is the directory in which the language model source script is saved, `--model` is the path of the language model to be used, `--vocab` is its vocabulary file, and finally the results will be saved in the directory `--save_dir` with a system generated file name based on user specified hyperparameters. For the full list of hyperparameters for the summary generation process and their meanings (alghough most of them were used for experimental purposes and need not to be changed), use `python uss/summary_search_elmo.py --help` or check the python script.
+where:
+- `--src` specifies the sentence corpus to be summarized
+- `--modelclass` is the directory in which the language model source script is saved
+- `--model` is the path of the language model to be used
+- `--vocab` is the vocabulary file associated with the language model
+
+and finally the results will be saved in the directory `--save_dir` with a system generated file name based on user specified hyperparameters. For the full list of hyperparameters for the summary generation process and their meanings (alghough most of them were used for experimental purposes and need not to be changed), use `python uss/summary_search_elmo.py --help` or check the python script.
 
 With the above command exactly, a file named "smry_input_unk_Ks10_clust1_ELcat_eosavg0_n6_ns10_nf300_a0.1_b0.0_all.txt" containing all the generated sentence summarizations will be saved in the directory "./results_elmo_giga/". In this file, for each source sentence, all of the finished hypotheses from beam search are saved as candidate summary sentences, along with their alignments to the original source sentence, as well as the combined scores, contextual matching scores, and language modeling scores. Note that this searching process is relatively slow, as we need to calculate the contextual embeddings for every sentence prefix and every candidate next word in the procedure, even with our optimization of caching and batching.
 
@@ -82,7 +88,7 @@ With the above command exactly, a file named "smry_input_unk_Ks10_clust1_ELcat_e
 
 To be consistent with the literature for evaluation, we need to select one summary sentence from the list to compare with the reference summary and calculate some metric statistics such as Rouge scores. Since our generation is unsupervised it could be difficult to select the best summary from a list of candidate summaries, and it is often the case that there is a better one than our selected one. Nevertheless we use a simple length penalized beam search score for our selection criterion.
 
-For summary selection and evaluation, run the following command:
+**For summary selection and evaluation, run the following command:**
 
 ```
 python uss/summary_select_eval.py --src ./data/gigaword/input_unk.txt --ref ./data/gigaword/task1_ref0.txt --gen ./results_elmo_giga/smry_input_unk_Ks10_clust1_ELcat_eosavg0_n6_ns10_nf300_a0.1_b0.0_all.txt --save_dir ./results_elmo_giga --lp 0.1
