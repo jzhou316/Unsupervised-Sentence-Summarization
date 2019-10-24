@@ -6,6 +6,7 @@ This is the code for the paper: \
 Jiawei Zhou, Alexander Rush
 
 <img src=figure1.png>
+<!---<img src=figure1.png width="500" height="500">--->
 
 
 ## Overview
