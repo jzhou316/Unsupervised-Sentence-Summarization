@@ -1,4 +1,7 @@
 # Unsupervised Sentence Summarization
+
+[![MIT License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
+
 Unsupervised sentence summarization by contextual matching.
 
 This is the code for the paper: \
