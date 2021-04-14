@@ -396,7 +396,7 @@ if __name__ == '__main__':
     if not os.path.exists(closewordind_outembed_path):
         values, indices = findclosewords_vocab(vocab, embedmatrix, numwords=500)
         # save results
-        os.makedirs(os.path.dirname(closewordind_outembed_path_path), exist_ok=True)
+        os.makedirs(os.path.dirname(closewordind_outembed_path), exist_ok=True)
         pickle.dump(values, open(closewordsim_outembed_path, 'wb'))
         pickle.dump(indices, open(closewordind_outembed_path, 'wb'))
 
